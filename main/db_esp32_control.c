@@ -31,6 +31,7 @@
 #include "msp_ltm_serial.h"
 #include "db_protocol.h"
 #include "tcp_server.h"
+#include "db_display.h"
 
 #define TAG "DB_CONTROL"
 #define TRANS_RD_BYTES_NUM  8   // amount of bytes read form serial port at once when transparent is selected
@@ -116,6 +117,9 @@ void send_to_all_clients(int tcp_clients[], struct db_udp_connection_t *udp_conn
             if (sent != data_length) {
                 ESP_LOGE(TAG, "UDP - Error sending (%i/%i) because of %d", sent, data_length, errno);
                 udp_conn->udp_clients[i].sin_len = 0;
+            } else {
+                db_status.wifi.tx_data += data_length;
+                db_status.wifi.tx_pkts++;
             }
         }
     }
@@ -123,9 +127,10 @@ void send_to_all_clients(int tcp_clients[], struct db_udp_connection_t *udp_conn
 
 void write_to_uart(const char tcp_client_buffer[], const size_t data_length) {
     int written = uart_write_bytes(UART_NUM_2, tcp_client_buffer, data_length);
-    if (written > 0)
+    if (written > 0) {
         ESP_LOGD(TAG, "Wrote %i bytes", written);
-    else
+        db_status.uart.tx_data += written;
+    } else
         ESP_LOGE(TAG, "Error writing to UART %s", esp_err_to_name(errno));
 }
 
@@ -183,6 +188,7 @@ void parse_transparent(int tcp_clients[], struct db_udp_connection_t *udp_conn, 
             send_to_all_clients(tcp_clients, udp_conn, serial_buffer, *serial_read_bytes);
             *serial_read_bytes = 0;
         }
+        db_status.uart.rx_data += read;
     }
 }
 
@@ -319,6 +325,7 @@ void control_module_tcp() {
                 if (recv_length > 0) {
                     ESP_LOGD(TAG, "TCP: Received %i bytes", recv_length);
                     write_to_uart(tcp_client_buffer, recv_length);
+                    db_status.wifi.rx_data += recv_length;
                 } else if (recv_length == 0) {
                     shutdown(tcp_clients[i], 0);
                     close(tcp_clients[i]);
@@ -339,6 +346,7 @@ void control_module_tcp() {
             ESP_LOGD(TAG, "UDP: Received %i bytes", recv_length);
             write_to_uart(udp_buffer, recv_length);
             add_udp_to_known_clients(&udp_conn, udp_source_addr, false);
+            db_status.wifi.rx_data += recv_length;
         }
         update_udp_broadcast(&last_udp_brdc_update, &udp_conn, &wifi_mode);
         switch (SERIAL_PROTOCOL) {

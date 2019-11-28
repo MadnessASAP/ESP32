@@ -31,6 +31,7 @@
 #include "http_server.h"
 #include "db_esp32_comm.h"
 #include "db_protocol.h"
+#include "db_display.h"
 
 EventGroupHandle_t wifi_event_group;
 static const char *TAG = "DB_ESP32";
@@ -173,6 +174,7 @@ void app_main()
     ESP_ERROR_CHECK(ret);
     read_settings_nvs();
     esp_log_level_set("*", ESP_LOG_INFO);
+    display_service();
     init_wifi();
     start_mdns_service();
     control_module();

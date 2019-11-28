@@ -21,6 +21,7 @@
 #include "esp_log.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
+#include "db_display.h"
 
 #define TCP_TAG "TCP_SERVER_SETUP"
 
@@ -63,7 +64,7 @@ void send_to_all_tcp_clients(const int tcp_clients[], uint8_t data[], uint data_
             int err = write(tcp_clients[i], data, data_length);
             if (err < 0) {
                 ESP_LOGE(TCP_TAG, "Error occurred during sending: %d", errno);
-            }
+            } else db_status.wifi.tx_data += err;
         }
     }
 
