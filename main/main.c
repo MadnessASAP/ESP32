@@ -32,6 +32,7 @@
 #include "db_esp32_comm.h"
 #include "db_protocol.h"
 #include "db_display.h"
+#include "esp_spiffs.h"
 
 EventGroupHandle_t wifi_event_group;
 static const char *TAG = "DB_ESP32";
@@ -163,6 +164,29 @@ void read_settings_nvs(){
     }
 }
 
+void register_webroot() {
+    ESP_LOGI(TAG, "registering SPIFFS webroot");
+
+    // FIXME: Use kconfig or something for most of these variables
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/www",
+        .partition_label = "www",
+        .max_files = 5,
+        .format_if_mount_failed = "false"
+    };
+
+    esp_err_t error = esp_vfs_spiffs_register(&conf);
+    if (error != ESP_OK)
+        ESP_LOGE(TAG, "failed to mount webroot: %s", esp_err_to_name(error));
+    else {
+        size_t total, used;
+        ESP_ERROR_CHECK_WITHOUT_ABORT(esp_spiffs_info("www", &total, &used));
+        ESP_LOGI(TAG, "webroot mounted partiton size: %d, used: %d", total, used);
+    }
+    
+
+}
+
 
 void app_main()
 {
@@ -175,9 +199,10 @@ void app_main()
     read_settings_nvs();
     esp_log_level_set("*", ESP_LOG_INFO);
     display_service();
+    register_webroot();
     init_wifi();
+    start_dashboard_server();
     start_mdns_service();
     control_module();
-    start_tcp_server();
     communication_module();
 }
