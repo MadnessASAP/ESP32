@@ -20,7 +20,7 @@
 #ifndef DB_ESP32_HTTP_SERVER_H
 #define DB_ESP32_HTTP_SERVER_H
 
-void start_tcp_server();
+void start_dashboard_server();
 void write_settings_to_nvs();
 
 #endif //DB_ESP32_HTTP_SERVER_H
