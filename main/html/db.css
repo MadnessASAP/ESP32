@@ -1,0 +1,39 @@
+h1 {
+    font-family: Verdana, Geneva, sans-serif;
+    color: #FF7900;
+}
+
+table.DroneBridge {
+    font-family: Verdana, Geneva, sans-serif;
+    background-color: #145396;
+    text-align: right;
+    border-collapse: collapse;
+}
+
+table.DroneBridge td,
+table.DroneBridge th {
+    padding: 6px 0px;
+}
+
+table.DroneBridge tbody td {
+    font-size: 1rm;
+    font-weight: bold;
+    color: #FFFFFF;
+    padding: 0.5em;
+}
+
+table.DroneBridge td:nth-child(even) {
+    background: #FF7900;
+}
+
+@media only screen and (max-width:768px) {
+    .DroneBridge {
+        width: 100%;
+    }
+}
+
+.foot {
+    color: #145396;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 0.8em;
+}

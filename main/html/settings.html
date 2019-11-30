@@ -1,59 +1,96 @@
-<!DOCTYPE html><html><head><title>DB for ESP32 Settings</title>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DB for ESP32 Settings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <style> 
-        h1 { font-family: Verdana, Geneva, sans-serif; color: #FF7900; } 
-        table.DroneBridge { font-family: Verdana, Geneva, sans-serif; background-color: #145396; text-align: right; border-collapse: collapse; } 
-        table.DroneBridge td, table.DroneBridge th { padding: 6px 0px; } 
-        table.DroneBridge tbody td { font-size: 1rm; font-weight: bold; color: #FFFFFF; padding: 0.5em; } 
-        table.DroneBridge td:nth-child(even) { background: #FF7900; }
-        @media only screen and (max-width:768px) { .DroneBridge {width:100%%; }}
-        .foot{color: #145396;font-family: Verdana, Geneva, sans-serif;font-size: 0.8em;}
-    </style>
+    <link rel="stylesheet" type="text/css" href="db.css">
 </head>
-<body><h1>DroneBridge for ESP32</h1>
+
+<body>
+    <h1>DroneBridge for ESP32</h1>
     <form action="/settings.html" id="settings_form" method="post" target="_blank">
-        <table class="DroneBridge"><tbody>
-            <tr><td>Wifi SSID</td>
-                <td><input type="text" name="ssid" value="%SSID%"></td></tr>
-            <tr><td>Wifi password</td>
-                <td><input type="text" name="wifi_pass" value="%PSK%"></td></tr>
-            <tr><td>Wifi channel</td>
-                <td><input type="number" name="wifi_chan" min="0" max="13" value="%CHAN%"></td></tr>
-            <tr><td>UART baud rate</td><td>
-                <select name="baud" form="settings_form">
-                    <option %BAUD_115% value="115200">115200</option>
-                    <option %BAUD_57% value="57600">57600</option>
-                    <option %BAUD_38% value="38400">38400</option>
-                    <option %BAUD_19% value="19200">19200</option>
-                    <option %BAUD_9% value="9600">9600</option>
-                </select>
-            </td></tr><tr><td>GPIO TX pin number</td>
-                <td><input type="text" name="gpio_tx" value="%UART_TX%"></td></tr>
-            <tr><td>GPIO RX pin number</td><td>
-                <input type="text" name="gpio_rx" value="%UART_RX%">
-            </td></tr><tr><td>UART serial protocol</td><td>
-                <select name="proto" form="settings_form">
-                    <option %MULTIWII% value="msp_ltm">MSP/LTM</option>
-                    <option %MAVLINK% value="trans">Transparent/MAVLink</option>
-                </select>
-            </td></tr><tr><td>Transparent packet size</td><td>
-                <select name="trans_pack_size" form="settings_form">
-                    <option %PKT_16% value="16">16</option><option %PKT_32% value="32">32</option>
-                    <option %PKT_64% value="64">64</option><option %PKT_128% value="128">128</option>
-                    <option %PKT_256% value="256">256</option>
-                </select>
-            </td></tr><tr><td>LTM frames per packet</td><td>
-                <select name="ltm_per_packet" form="settings_form">
-                    <option %LTM_1% value="1">1</option>
-                    <option %LTM_2% value="2">2</option>
-                    <option %LTM_3% value="3">3</option>
-                    <option %LTM_4% value="4">4</option>
-                    <option %LTM_5% value="5">5</option>
-                </select>
-            </td></tr><tr><td></td><td>
-        </td></tr></tbody></table><p></p>
-        <input target= "_top" type="submit" value="Save">
+        <table class="DroneBridge">
+            <tbody>
+                <tr>
+                    <td>Wifi SSID</td>
+                    <td><input type="text" name="ssid" value="%SSID%"></td>
+                </tr>
+                <tr>
+                    <td>Wifi password</td>
+                    <td><input type="text" name="wifi_pass" value="%PSK%"></td>
+                </tr>
+                <tr>
+                    <td>Wifi channel</td>
+                    <td><input type="number" name="wifi_chan" min="0" max="13" value="%CHAN%"></td>
+                </tr>
+                <tr>
+                    <td>UART baud rate</td>
+                    <td>
+                        <select name="baud" form="settings_form">
+                            <option %BAUD[115200]% value="115200">115200</option>
+                            <option %BAUD[57600]% value="57600">57600</option>
+                            <option %BAUD[38400]% value="38400">38400</option>
+                            <option %BAUD[19200]% value="19200">19200</option>
+                            <option %BAUD[9600]% value="9600">9600</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>GPIO TX pin number</td>
+                    <td><input type="text" name="gpio_tx" value="%UART_TX%"></td>
+                </tr>
+                <tr>
+                    <td>GPIO RX pin number</td>
+                    <td>
+                        <input type="text" name="gpio_rx" value="%UART_RX%">
+                    </td>
+                </tr>
+                <tr>
+                    <td>UART serial protocol</td>
+                    <td>
+                        <select name="proto" form="settings_form">
+                            <option %PROTO[1]% value="msp_ltm">MSP/LTM</option>
+                            <option %PROTO[3]% value="trans">Transparent/MAVLink</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Transparent packet size</td>
+                    <td>
+                        <select name="trans_pack_size" form="settings_form">
+                            <option %PKT[16]% value="16">16</option>
+                            <option %PKT[32]% value="32">32</option>
+                            <option %PKT[64]% value="64">64</option>
+                            <option %PKT[128]% value="128">128</option>
+                            <option %PKT[256]% value="256">256</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>LTM frames per packet</td>
+                    <td>
+                        <select name="ltm_per_packet" form="settings_form">
+                            <option %LTM[1]% value="1">1</option>
+                            <option %LTM[2]% value="2">2</option>
+                            <option %LTM[3]% value="3">3</option>
+                            <option %LTM[4]% value="4">4</option>
+                            <option %LTM[5]% value="5">5</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p></p>
+        <input target="_top" type="submit" value="Save">
     </form>
     <p class="foot">%BUILD%</p>
-<p class="foot">&copy; Wolfgang Christl 2018 - Apache 2.0 License</p>
-</body></html>
+    <p class="foot">&copy; Wolfgang Christl 2018 - Apache 2.0 License</p>
+</body>
+
+</html>
