@@ -20,7 +20,6 @@
  *
  */
 
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "globals.h"
@@ -32,12 +31,13 @@
 
 #define TAG "SETTINGS_SERVER"
 
-void write_settings_to_nvs() {
+void write_settings_to_nvs()
+{
     ESP_LOGI(TAG, "Saving to NVS");
     nvs_handle my_handle;
     ESP_ERROR_CHECK(nvs_open("settings", NVS_READWRITE, &my_handle));
-    ESP_ERROR_CHECK(nvs_set_str(my_handle, "ssid", (char *) DEFAULT_SSID));
-    ESP_ERROR_CHECK(nvs_set_str(my_handle, "wifi_pass", (char *) DEFAULT_PWD));
+    ESP_ERROR_CHECK(nvs_set_str(my_handle, "ssid", (char *)DEFAULT_SSID));
+    ESP_ERROR_CHECK(nvs_set_str(my_handle, "wifi_pass", (char *)DEFAULT_PWD));
     ESP_ERROR_CHECK(nvs_set_u8(my_handle, "wifi_chan", DEFAULT_CHANNEL));
     ESP_ERROR_CHECK(nvs_set_u32(my_handle, "baud", DB_UART_BAUD_RATE));
     ESP_ERROR_CHECK(nvs_set_u8(my_handle, "gpio_tx", DB_UART_PIN_TX));
@@ -49,74 +49,100 @@ void write_settings_to_nvs() {
     nvs_close(my_handle);
 }
 
-static esp_err_t settings_handler(httpd_req_t *request) {
+// Appends the requested uri to the end of WEBROOT and attempts to
+// open the file, returns the file handle if successful
+static FILE *fopen_uri(const char *file)
+{
+    const char WEBROOT[] = "/www/";
+    char filename[strlen(WEBROOT) + strlen(file)];
+    strcpy(filename, WEBROOT);
+    strcat(file, filename);
+    return fopen(filename, "r");
+}
+
+static esp_err_t get_handler(httpd_req_t *request)
+{
     // TODO: Actually search and replace placeholder tags with the actual values from current settings
-    ESP_LOGD(TAG":settings_handler()", "GET: %s", request->uri);
-    
-    bool chunk_resp = false;
-    FILE * f = fopen("/www/settings.html", "r");
-    if(f == NULL) {
+    ESP_LOGI(TAG, "get: %s", request->uri);
+
+    FILE *f = fopen_uri(request->uri);
+    if (f == NULL)
+    {
         httpd_resp_send_404(request);
         return ESP_OK;
     }
 
-    do {
+    bool chunk_resp = false;
+    do
+    {
         char buf[1024];
         size_t bytes_read = fread(buf, 1, 1024, f);
-        if(bytes_read == 1024) {
+        if (bytes_read == 1024)
+        {
             chunk_resp = true;
             ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send_chunk(request, buf, bytes_read));
-        } else if (bytes_read < 1024 && !ferror(f)) {
-            if(chunk_resp) ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send_chunk(request, buf, bytes_read));
-            else ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send(request, buf, bytes_read));
-        } else httpd_resp_send_500(request);
-    } while(!(feof(f) || ferror(f)));
-    
+        }
+        else if (bytes_read < 1024 && !ferror(f))
+        {
+            if (chunk_resp)
+                ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send_chunk(request, buf, bytes_read));
+            else
+                ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send(request, buf, bytes_read));
+        }
+        else
+            httpd_resp_send_500(request);
+    } while (!(feof(f) || ferror(f)));
+
     fclose(f);
-    if(chunk_resp) ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send_chunk(request, NULL, 0));
-    
-    return ESP_OK;        
+    if (chunk_resp)
+        ESP_ERROR_CHECK_WITHOUT_ABORT(httpd_resp_send_chunk(request, NULL, 0));
+
+    return ESP_OK;
 }
 
 httpd_uri_t uri_settings = {
-    .uri = "/settings.html",
+    .uri = "/*",
     .method = HTTP_GET,
-    .handler = settings_handler,
-    .user_ctx = NULL
-};
+    .handler = get_handler,
+    .user_ctx = NULL};
 
-static httpd_handle_t _start_webserver() {
+static httpd_handle_t _start_webserver()
+{
     httpd_handle_t server = NULL;
-    httpd_config_t server_config = HTTPD_DEFAULT_CONFIG();
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.uri_match_fn = httpd_uri_match_wildcard;
 
     ESP_LOGI(TAG, "starting http server");
-    esp_err_t retval = httpd_start(&server, &server_config);
+    esp_err_t retval = httpd_start(&server, &config);
     if (retval == ESP_OK)
     {
         ESP_LOGI(TAG, "registering URI handlers");
         httpd_register_uri_handler(server, &uri_settings);
         return server;
-    } else {
+    }
+    else
+    {
         ESP_LOGE(TAG, "failed to start http server: %s", esp_err_to_name(retval));
         return NULL;
     }
-    
-    
 }
 
 // Called when WiFi connects and receives an IP address
-static void _connect_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    httpd_handle_t * server = (httpd_handle_t*) arg;
-    if (*server == NULL) *server = _start_webserver();
-    
+static void _connect_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+    httpd_handle_t *server = (httpd_handle_t *)arg;
+    if (*server == NULL)
+        *server = _start_webserver();
 }
 
 // Called if WiFi is disconnected
-static void _disconnect_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+static void _disconnect_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
     // TODO stop webserver
 }
 
-void http_dashboard_server(void *parameter) {
+void http_dashboard_server(void *parameter)
+{
     ESP_LOGI(TAG, "http_dashboard_server task started");
     static httpd_handle_t server = NULL;
 
@@ -125,22 +151,22 @@ void http_dashboard_server(void *parameter) {
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, SYSTEM_EVENT_AP_START, &_connect_handler, &server));
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &_disconnect_handler, &server));
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, SYSTEM_EVENT_AP_STOP, &_disconnect_handler, &server));
-    
+
     // Open spiffs webroot partition
 
-       
-    while (1) {
+    while (1)
+    {
         vTaskSuspend(NULL);
     }
-     
+
     ESP_LOGI(TAG, "...tcp_client task closed\n");
     vTaskDelete(NULL);
 }
 
-
 /**
  * @brief Starts a HTTP server that serves the page to change settings & handles the changes
  */
-void start_dashboard_server() {
+void start_dashboard_server()
+{
     xTaskCreate(&http_dashboard_server, "http_dashboard_server", 10240, NULL, 5, NULL);
 }
