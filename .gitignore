@@ -9,9 +9,9 @@ CMakeListsPrivate.txt
 /.idea/
 /cmake-build-debug/
 /build/
-
+.vscode/
 .idea/
-
+sdkconfig*
 build/
 
 cmake-build-debug/
