@@ -1,0 +1,18 @@
+menuconfig OLED_ENABLE
+    bool "Enable OLED Display"
+    if OLED_ENABLE
+        config OLED_ADDRESS
+            hex "OLED Display Address (0x00 - 0x7F)"
+            range 0 127
+            default 0x3c
+        config OLED_SCL
+            int "OLED SCL GPIO"
+            default 4
+        config OLED_SDA
+            int "OLED SDA GPIO"
+            default 15
+        config OLED_RST
+            int "OLED RST GPIO"
+            default 16
+    endif
+    

@@ -5,6 +5,7 @@
 
 #ifndef DB_DISPLAY_H
 #define DB_DISPLAY_H
+#include "sdkconfig.h"
 
 typedef struct {
     volatile unsigned tx_data, rx_data;  // Accumulated bytes since the last update
@@ -38,7 +39,12 @@ extern db_status_t db_status;
 #ifdef __cplusplus
 extern "C" { 
 #endif
+#ifdef CONFIG_OLED_ENABLE
     void display_service();
+#else
+    // OLED Display disabled
+    void display_service() { }
+#endif
 #ifdef __cplusplus
 }
 #endif
